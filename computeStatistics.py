@@ -97,7 +97,7 @@ def write_results(results):
 def main():
     """defination of the main"""
     if len(sys.argv) != 2:
-        print("Usage: python computeStatistics.py P1/TC1.txt")
+        print("Usage: python computeStatistics.py P1_TC1.txt")
         sys.exit(1)
 
     file_path = sys.argv[1]

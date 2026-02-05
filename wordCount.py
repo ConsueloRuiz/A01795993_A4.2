@@ -66,7 +66,7 @@ def write_results(results):
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python wordCount.py P3\TC1.txt")
+        print("Usage: python wordCount.py P3_TC1.txt")
         sys.exit(1)
 
     file_path = sys.argv[1]

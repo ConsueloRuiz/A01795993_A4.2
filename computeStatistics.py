@@ -1,20 +1,20 @@
-"""
 #!/usr/bin/env python3
-
+"""
 computeStatistics.py
 
-Computes descriptive statistics (mean, median, mode,
-variance, standard deviation) from a file containing numbers.
-
+Reads a file or a directory containing text files with numbers
+and computes descriptive statistics using basic algorithms only.
+Results are printed on screen and saved to StatisticsResults.txt.
 """
-
+# pylint: disable=invalid-name
 import sys
 import time
+import os
 
 
 def read_numbers_from_file(file_path):
     """
-    Reads numbers from a file.
+    Reads numeric values from a single file.
     Invalid data is reported and skipped.
     """
     numbers = []
@@ -23,23 +23,45 @@ def read_numbers_from_file(file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             for line_number, line in enumerate(file, start=1):
                 value = line.strip()
+
                 if not value:
                     continue
+
                 try:
                     numbers.append(float(value))
                 except ValueError:
                     print(
-                        f"Invalid data at line {line_number}: '{value}'"
+                        f"Invalid data in {file_path} "
+                        f"at line {line_number}: '{value}'"
                     )
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
-        sys.exit(1)
+    except Exception as error:
+        print(f"Error reading file {file_path}: {error}")
 
     return numbers
 
 
+def read_numbers_from_path(path):
+    """
+    Reads numbers from a file or from all .txt files in a directory.
+    """
+    all_numbers = []
+
+    if os.path.isfile(path):
+        all_numbers.extend(read_numbers_from_file(path))
+
+    elif os.path.isdir(path):
+        for filename in os.listdir(path):
+            if filename.lower().endswith(".txt"):
+                file_path = os.path.join(path, filename)
+                all_numbers.extend(read_numbers_from_file(file_path))
+    else:
+        print(f"Error: '{path}' is not a valid file or directory.")
+        sys.exit(1)
+
+    return all_numbers
+
+
 def compute_mean(data):
-    """calculate the mean of the numbers."""
     total = 0.0
     for value in data:
         total += value
@@ -47,35 +69,44 @@ def compute_mean(data):
 
 
 def compute_median(data):
-    """calculate the median of the numbers"""
     sorted_data = sorted(data)
     n = len(sorted_data)
     mid = n // 2
 
     if n % 2 == 0:
         return (sorted_data[mid - 1] + sorted_data[mid]) / 2
+
     return sorted_data[mid]
 
+
 def compute_mode(data):
-    """calculate the mode of the numbers"""
     frequency = {}
+
     for value in data:
         if value in frequency:
             frequency[value] += 1
         else:
             frequency[value] = 1
 
-    max_count = max(frequency.values())
-    modes = [k for k, v in frequency.items() if v == max_count]
+    max_count = 0
+    mode_value = None
+    multiple_modes = False
 
-    if len(modes) == len(frequency):
+    for key in frequency:
+        if frequency[key] > max_count:
+            max_count = frequency[key]
+            mode_value = key
+            multiple_modes = False
+        elif frequency[key] == max_count:
+            multiple_modes = True
+
+    if multiple_modes:
         return None
 
-    return modes
+    return mode_value
 
 
 def compute_variance(data, mean):
-    """calculate the variance of the numbers"""
     total = 0.0
     for value in data:
         total += (value - mean) ** 2
@@ -83,27 +114,27 @@ def compute_variance(data, mean):
 
 
 def compute_standard_deviation(variance):
-    """calculate the standard deviation of the numbers"""
     return variance ** 0.5
 
 
 def write_results(results):
-    """write the result on StatisticsResults.txt."""
+    """
+    Writes results to StatisticsResults.txt.
+    """
     with open("StatisticsResults.txt", "w", encoding="utf-8") as file:
         for line in results:
             file.write(line + "\n")
 
 
 def main():
-    """defination of the main"""
     if len(sys.argv) != 2:
-        print("Usage: python computeStatistics.py P1_TC1.txt")
+        print("Usage: python computeStatistics.py <file_or_directory>")
         sys.exit(1)
 
-    file_path = sys.argv[1]
+    path = sys.argv[1]
     start_time = time.time()
 
-    data = read_numbers_from_file(file_path)
+    data = read_numbers_from_path(path)
 
     if not data:
         print("No valid numeric data found.")
